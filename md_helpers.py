@@ -381,3 +381,6 @@ def generate_upgrade_pricing_image(supp, num=20, default=False):
         if monopolist.is_upgrade_pricing() and (not monopolist.is_grand_bundling()):
             monopolist.save(f"img_{k}.html")
             k += 1
+
+
+generate_upgrade_pricing_image(4)
