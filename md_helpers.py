@@ -142,7 +142,7 @@ class MGMProblem:
         return p.value(self._problem.objective)
 
     @property
-    def constraints(self):
+    def _constraints(self):
         """Return constraints of the problem
 
         Returns:
@@ -159,13 +159,13 @@ class MGMProblem:
         """
 
         ic_duals = {
-            name: c.pi for name, c in self.constraints if (not name.startswith("IR"))
+            name: c.pi for name, c in self._constraints if (not name.startswith("IR"))
         }
         lam = np.zeros((self.supp, self.supp))
         for i in range(self.supp):
             for j in range(self.supp):
                 if i != j:
-                    lam[i, j] = ic_duals["IC_{}{}".format(i, j)]
+                    lam[i, j] = -ic_duals["IC_{}{}".format(i, j)]
         return lam
 
     @property
@@ -214,8 +214,8 @@ class MGMProblem:
         for i in range(self.supp):
             for j in range(self.supp):
                 virtual_value[i] -= (
-                    lam[i, j]
-                    * (self._types[i] - self._types[j])
+                    lam[j, i]
+                    * (self._types[j] - self._types[i])
                     / self._probabilities[i]
                 )
         return virtual_value
@@ -291,7 +291,7 @@ class MGMProblem:
             )
             for j in range(self.supp):
                 if i != j:
-                    if self.lam[j][i] != 0:
+                    if self.lam[i][j] != 0:
                         arrow = ax.arrow(
                             self._types[i, 0],
                             self._types[i, 1],
@@ -354,7 +354,7 @@ class InstanceRandomizer:
         return types, probabilities
 
 
-def generate_upgrade_pricing_image(supp, num=20, default=False):
+def generate_upgrade_pricing_image(supp=4, num=20, default=False):
     """Top-level function to generate solved examples.
 
     Args:
@@ -383,4 +383,4 @@ def generate_upgrade_pricing_image(supp, num=20, default=False):
             k += 1
 
 
-generate_upgrade_pricing_image(4)
+generate_upgrade_pricing_image(5)
