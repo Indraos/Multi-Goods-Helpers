@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """Computes optimal mechanisms and dual solutions for the multi-goods monopolist problem.
 
 The classes in this script allow to compute and visualize \
