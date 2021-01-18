@@ -3,6 +3,7 @@ Utilities to solve and visualize multi-goods monopolist problems and their dual 
 ## Getting started
 Run
 ```bash
+pip3 install -r requirements.txt
 ./md_helpers.py
 ```
 in your console to get 20 sample files.
