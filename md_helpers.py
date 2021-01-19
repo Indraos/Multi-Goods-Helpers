@@ -286,12 +286,42 @@ class MGMProblem:
         arrow_tooltips = []
         point_labels = []
         for i in range(self.supp):
+            html_table = "<table><tr><th>Name</th><th>Value</th></tr><tr><td>{}</td><td>{}</td></tr><tr><td>{}</td><td>{}</td></tr><tr><td>{}</td><td>{}</td></tr><tr><td>{}</td><td>{}</td></tr><tr><td>{}</td><td>{}</td></tr></table>"
             point_labels.append(
-                f"p:{self._probabilities[i]:.2f}\n virt{self.virtual[i,0]:.2f},{self.virtual[i,1]:.2f}\n myer{self.initial_virtual[i,0]:.2f},{self.initial_virtual[i,1]:.2f}\n type{self._types[i,0]:.2f},{self._types[i,1]:.2f}"
+                html_table.format(
+                    "probability",
+                    f"{self._probabilities[i]:.2f}",
+                    "optimal virtual",
+                    "("
+                    + f"{self.virtual[i,0]:.2f}"
+                    + ","
+                    + f"{self.virtual[i,1]:.2f}"
+                    + ")",
+                    "initial virtual",
+                    "("
+                    + f"{self.initial_virtual[i,0]:.2f}"
+                    + ","
+                    + f"{self.initial_virtual[i,1]:.2f}"
+                    + ")",
+                    "type",
+                    "("
+                    + f"{self._types[i,0]:.2f}"
+                    + ","
+                    + f"{self._types[i,1]:.2f}"
+                    + ")",
+                    "allocation",
+                    "("
+                    + f"{self.allocations[i,0]:.2f}"
+                    + ","
+                    + f"{self.allocations[i,1]:.2f}"
+                    + ")",
+                )
             )
             for j in range(self.supp):
                 if i != j:
-                    if self.lam[i][j] != 0:
+                    if (not np.isclose(self.lam[i][j], 0)) or (
+                        not np.isclose(self.initial_lam[i, j], 0)
+                    ):
                         arrow = ax.arrow(
                             self._types[i, 0],
                             self._types[i, 1],
@@ -303,10 +333,15 @@ class MGMProblem:
                             ec="black",
                             fc="black",
                             capstyle="round",
+                            ls=(":" if np.isclose(self.lam[i, j], 0) else "-"),
                             length_includes_head=True,
                         )
-                        arrow_label = (
-                            f"{self.lam[i][j]:.2f}, {self.initial_lam[i][j]:.2f}"
+                        html_table = "<table><tr><th>Dual</th><th>Value</th></tr><tr><td>{}</td><td>{}</td></tr><tr><td>{}</td><td>{}</td></tr></table>"
+                        arrow_label = html_table.format(
+                            "optimal",
+                            f"{self.lam[i][j]:.2f}",
+                            "initial",
+                            f"{self.initial_lam[i][j]:.2f}",
                         )
                         arrow_tooltips.append(
                             plugins.LineHTMLTooltip(
@@ -348,13 +383,13 @@ class InstanceRandomizer:
                 np.cumprod(multipliers) * np.cumprod(second_multipliers),
             ]
         ).T
-        types -= 0.5 * np.ones_like(types)
+        types -= np.ones_like(types)
         probabilities = np.array([np.random.uniform() for i in range(self.supp)])
         probabilities /= probabilities.sum()
         return types, probabilities
 
 
-def generate_upgrade_pricing_image(supp=4, num=20, default=False):
+def generate_upgrade_pricing_image(supp=4, num=40, default=False):
     """Top-level function to generate solved examples.
 
     Args:
@@ -363,7 +398,8 @@ def generate_upgrade_pricing_image(supp=4, num=20, default=False):
         default (bool, optional): Choose a default upgrade pricing example. Defaults to False.
     """
     random = InstanceRandomizer(supp)
-    for k in range(num):
+    k = 1
+    while k <= num:
         if default:
             types = np.array(
                 [
